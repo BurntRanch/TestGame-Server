@@ -1,0 +1,1 @@
+LD_PRELOAD=build/release/sdl_engine/libengine.so:build/release/sdl_engine/steam/libGameNetworkingSockets.so ./build/release/game

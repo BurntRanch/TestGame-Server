@@ -1,0 +1,182 @@
+<UIScene>
+
+<Group>
+    <Properties>
+        <ID>hudGroup</ID>
+
+        <Position>
+            <X>0</X>
+            <Y>0</Y>
+        </Position>
+
+        <Scale>
+            <X>1</X>
+            <Y>1</Y>
+        </Scale>
+
+        <Visible>False</Visible>
+    </Properties>
+
+    <Label>
+        <Properties>
+            <ID>healthText</ID>
+
+            <Text>your health (real)</Text>
+
+            <Position>
+                <X>0.05</X>
+                <Y>0.8</Y>
+            </Position>
+
+            <Scale>
+                <X>1</X>
+                <Y>1</Y>
+            </Scale>
+
+            <Font>NotoSans-Black.ttf</Font>
+        </Properties>
+    </Label>
+
+    <Panel>
+        <Properties>
+            <ID>healthBar</ID>
+
+            <Color>
+                <R>0.7</R>
+                <G>0.8</G>
+                <B>0.7</B>
+            </Color>
+
+            <Position>
+                <X>0.05</X>
+                <Y>0.875</Y>
+            </Position>
+
+            <Scale>
+                <X>0.6</X>
+                <Y>0.05</Y>
+            </Scale>
+        </Properties>
+    </Label>
+</Group>
+
+<Group>
+    <Properties>
+        <ID>mainMenuGroup</ID>
+
+        <Position>
+            <X>0</X>
+            <Y>0</Y>
+        </Position>
+
+        <Scale>
+            <X>1</X>
+            <Y>1</Y>
+        </Scale>
+    </Properties>
+
+    <Button>
+        <Properties>
+            <ID>playButton</ID>
+
+            <Position>
+                <X>0.05</X>
+                <Y>0.3</Y>
+            </Position>
+
+            <Scale>
+                <X>0.0</X>
+                <Y>0.0</Y>
+            </Scale>
+
+            <BgPanel>
+                <Panel>
+                    <Properties>
+                        <ID>bgPanel</ID>
+
+                        <Color>
+                            <R>0.8</R>
+                            <G>0.8</G>
+                            <B>0.8</B>
+                        </Color>
+
+                        <Position>
+                            <X>0.0</X>
+                            <Y>0.0</Y>
+                        </Position>
+
+                        <Scale>
+                            <X>1</X>
+                            <Y>1</Y>
+                        </Scale>
+
+                        <ZDepth>0.9</ZDepth>
+                    </Properties>
+                </Panel>
+            </BgPanel>
+
+            <FgLabel>
+                <Label>
+                    <Properties>
+                        <ID>fgLabel</ID>
+
+                        <Text>Play</Text>
+
+                        <Position>
+                            <X>0.0</X>
+                            <Y>0.0</Y>
+                        </Position>
+
+                        <Font>NotoSans-Black.ttf</Font>
+
+                        <ZDepth>0.9</ZDepth>
+                    </Properties>
+                </Label>
+            </FgLabel>
+        </Properties>
+    </Button>
+
+    <Panel>
+        <Properties>
+            <ID>bg</ID>
+
+            <Color>
+                <R>0.35</R>
+                <G>0.35</G>
+                <B>0.3</B>
+            </Color>
+
+            <Position>
+                <X>0.0</X>
+                <Y>0.0</Y>
+            </Position>
+
+            <Scale>
+                <X>1</X>
+                <Y>1</Y>
+            </Scale>
+        </Properties>
+    </Panel>
+
+    <Label>
+        <Properties>
+            <ID>gameTitle</ID>
+
+            <Text>Test Game</Text>
+
+            <Position>
+                <X>0.05</X>
+                <Y>0.05</Y>
+            </Position>
+
+            <Scale>
+                <X>1</X>
+                <Y>1</Y>
+            </Scale>
+
+            <Font>NotoSans-Black.ttf</Font>
+        </Properties>
+    </Label>
+</Group>
+
+</UIScene>
