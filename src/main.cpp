@@ -20,6 +20,7 @@
 #include "common.hpp"
 #include "model.hpp"
 #include "steamnetworkingtypes.h"
+#include "isteamnetworkingutils.h"
 #include "ui/arrows.hpp"
 #include "ui/button.hpp"
 #include "ui/label.hpp"
@@ -40,11 +41,12 @@ int main() {
     engine->InitNetworking();
 
     SteamNetworkingIPAddr ipAddr;
-    ipAddr.SetIPv6LocalHost(9582);
+    ipAddr.Clear();
+    ipAddr.ParseString("127.0.0.1:9582");
 
     engine->HostGameServer(ipAddr);
 
-    while (true) { std::this_thread::sleep_for(std::chrono::hours(90)); };
+    std::this_thread::sleep_for(std::chrono::hours(90));
 
     return 0;
 }
