@@ -1,2 +1,0 @@
--Iinclude
--isystem/usr/include/freetype2
