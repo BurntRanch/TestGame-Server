@@ -1,3 +1,0 @@
-[submodule "lib/sdl_engine"]
-	path = lib/sdl_engine
-	url = https://github.com/BurntRanch/sdl_engine
