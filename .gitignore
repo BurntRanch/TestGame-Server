@@ -3,7 +3,6 @@ SDL
 game
 settings.*
 !settings.def.toml
-lib*
 
 *.tar.*
 
