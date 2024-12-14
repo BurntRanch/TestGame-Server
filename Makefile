@@ -19,7 +19,7 @@ SRC 	   	 = $(sort $(wildcard src/*.cpp))
 OBJ 	   	 = $(SRC:.cpp=.o)
 LDFLAGS   	+= -L$(BUILDDIR)/sdl_engine -L$(BUILDDIR)/sdl_engine/steam -lfmt -lSDL3 -lengine -lGameNetworkingSockets
 CXXFLAGS  	?= -mtune=generic -march=native
-CXXFLAGS        += -funroll-all-loops -Iinclude -Ilib/sdl_engine/include -isystem/usr/include/freetype2 -std=c++17 $(VARS)
+CXXFLAGS        += -funroll-all-loops -Iinclude -Ilib/sdl_engine/include -Ilib/sdl_engine/include/steam -isystem/usr/include/freetype2 -std=c++17 $(VARS)
 
 all: engine $(TARGET)
 
