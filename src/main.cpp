@@ -3,6 +3,7 @@
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_scancode.h>
 #include <chrono>
+#include <cmath>
 #include <engine.hpp>
 #include <glm/ext/matrix_projection.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -35,10 +36,21 @@ std::unique_ptr<Engine> engine;
 namespace State {
 }
 
+void TickUpdate(int tickNumber) {
+    Object *obj = engine->GetObjectByID(2);
+    UTILASSERT(obj);
+
+    /* tickrate = 64.0f */
+    obj->SetScale(glm::vec3(sin(tickNumber*(1.0f/64.0f))));
+}
+
 int main() {
     engine = std::make_unique<Engine>();
     
     engine->InitNetworking();
+    engine->RegisterTickUpdateHandler(TickUpdate);
+
+    engine->ImportScene("untitled.glb"); /* Get the objects ready to sync */
 
     SteamNetworkingIPAddr ipAddr;
     ipAddr.Clear();

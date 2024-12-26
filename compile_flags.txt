@@ -2,3 +2,4 @@
 -Ilib/sdl_engine/include
 -Ilib/sdl_engine/include/steam
 -isystem/usr/include/freetype2
+-std=c++20
