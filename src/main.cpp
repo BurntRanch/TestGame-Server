@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include "camera.hpp"
 #include "common.hpp"
 #include "model.hpp"
@@ -34,6 +35,7 @@
 std::unique_ptr<Engine> engine;
 
 namespace State {
+    std::unordered_map<HSteamNetConnection, Object *> ConnectionToObjectMap;
 }
 
 void TickUpdate(int tickNumber) {
@@ -44,13 +46,36 @@ void TickUpdate(int tickNumber) {
     obj->SetScale(glm::vec3(sin(tickNumber*(1.0f/64.0f))));
 }
 
+void onClientConnect(HSteamNetConnection conn) {
+    /* TODO: I basically want to add an object for each client and let them move together, but I have to attach cameras. */
+    /* The problem being, how would I be able to tell each client which camera they should use? */
+    /* it shouldn't be too difficult, Maybe the update packet could include a top-level array of Cameras? */
+
+    Object *obj = new Object();
+    obj->ImportFromFile("untitled.glb");
+
+    /* Maybe something like this..? */
+    // engine->AddObject(obj);  // obj would have a camera attachment, which would be added with AddObject.
+    // engine->AttachCameraToConnection(cam, conn); // When an update is sent to conn, it would send a bool flag next to the camera that indicates it's the primary camera.
+
+    State::ConnectionToObjectMap[conn] = obj;
+}
+
+void onClientDisconnect(HSteamNetConnection conn) {
+    // engine->RemoveObject(State::ConnectionToObjectMap[conn]);
+    // delete State::ConnectionToObjectMap[conn]->GetCameraAttachment();
+    // delete State::ConnectionToObjectMap[conn];
+}
+
 int main() {
     engine = std::make_unique<Engine>();
     
     engine->InitNetworking();
-    engine->RegisterTickUpdateHandler(TickUpdate);
+    // engine->RegisterTickUpdateHandler(TickUpdate, NETWORKING_THREAD_ACTIVE_SERVER);
+    engine->RegisterNetworkListener(onClientConnect, EVENT_CLIENT_CONNECTED);
+    engine->RegisterNetworkListener(onClientDisconnect, EVENT_CLIENT_DISCONNECTED);
 
-    engine->ImportScene("untitled.glb"); /* Get the objects ready to sync */
+    // engine->ImportScene("untitled.glb"); /* Get the objects ready to sync */
 
     SteamNetworkingIPAddr ipAddr;
     ipAddr.Clear();
