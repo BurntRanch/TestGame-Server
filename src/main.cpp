@@ -36,6 +36,17 @@ std::unique_ptr<Engine> engine;
 
 namespace State {
     std::unordered_map<HSteamNetConnection, Object *> ConnectionToObjectMap;
+
+    enum packetType {
+        PACKET_MOVEMENT_REQUEST,
+    };
+
+    struct Packet {
+        packetType type;
+
+        /* if packetType == PACKET_MOVEMENT_REQUEST*/
+        float movementDirection;
+    };
 }
 
 void TickUpdate(int tickNumber) {
@@ -47,39 +58,67 @@ void TickUpdate(int tickNumber) {
 }
 
 void onClientConnect(HSteamNetConnection conn) {
-    /* TODO: I basically want to add an object for each client and let them move together, but I have to attach cameras. */
-    /* The problem being, how would I be able to tell each client which camera they should use? */
-    /* it shouldn't be too difficult, Maybe the update packet could include a top-level array of Cameras? */
-
     Object *obj = new Object();
-    obj->ImportFromFile("untitled.glb");
+    Camera *primaryCam = nullptr;
+
+    obj->ImportFromFile("resources/untitled.glb", primaryCam);
+
+    UTILASSERT(primaryCam);
 
     /* Maybe something like this..? */
-    // engine->AddObject(obj);  // obj would have a camera attachment, which would be added with AddObject.
-    // engine->AttachCameraToConnection(cam, conn); // When an update is sent to conn, it would send a bool flag next to the camera that indicates it's the primary camera.
+    engine->AddObject(obj);  // obj would have a camera attachment, which would be added with AddObject.
+    engine->AttachCameraToConnection(primaryCam, conn); // When an update is sent to conn, it would send a bool flag next to the camera that indicates it's the primary camera.
 
     State::ConnectionToObjectMap[conn] = obj;
 }
 
 void onClientDisconnect(HSteamNetConnection conn) {
-    // engine->RemoveObject(State::ConnectionToObjectMap[conn]);
-    // delete State::ConnectionToObjectMap[conn]->GetCameraAttachment();
-    // delete State::ConnectionToObjectMap[conn];
+    engine->RemoveObject(State::ConnectionToObjectMap[conn]);
+
+    delete State::ConnectionToObjectMap[conn]->GetCameraAttachment();
+    delete State::ConnectionToObjectMap[conn];
 }
 
-int main() {
+void onData(HSteamNetConnection conn, std::vector<std::byte> data) {
+    fmt::println("Got data!");
+
+    State::Packet packet{};
+    Deserialize(data, packet.type);
+    Deserialize(data, packet.movementDirection);
+
+    fmt::println("Client wants to move {} units along the X axis.", packet.movementDirection);
+    fmt::println("We're an insecure server, so lets just allow them.");
+
+    Object *obj = State::ConnectionToObjectMap[conn];
+    obj->SetPosition(obj->GetPosition() + glm::vec3(packet.movementDirection, 0.0f, 0.0f));
+}
+
+int main(int argc, char *argv[]) {
     engine = std::make_unique<Engine>();
     
     engine->InitNetworking();
     // engine->RegisterTickUpdateHandler(TickUpdate, NETWORKING_THREAD_ACTIVE_SERVER);
-    engine->RegisterNetworkListener(onClientConnect, EVENT_CLIENT_CONNECTED);
-    engine->RegisterNetworkListener(onClientDisconnect, EVENT_CLIENT_DISCONNECTED);
+    engine->RegisterNetworkEventListener(onClientConnect, EVENT_CLIENT_CONNECTED);
+    engine->RegisterNetworkEventListener(onClientDisconnect, EVENT_CLIENT_DISCONNECTED);
+
+    engine->RegisterNetworkDataListener(onData);
 
     // engine->ImportScene("untitled.glb"); /* Get the objects ready to sync */
 
     SteamNetworkingIPAddr ipAddr;
     ipAddr.Clear();
-    ipAddr.ParseString("127.0.0.1:9582");
+
+    if (argc >= 2) {
+        fmt::println("Hosting server at {}!", argv[1]);
+        ipAddr.ParseString(argv[1]);
+
+        if (ipAddr.m_port == 0) {
+            ipAddr.m_port = 9582;
+        }
+    } else {
+        fmt::println("Hosting server at 127.0.0.1!");
+        ipAddr.ParseString("127.0.0.1:9582");
+    }
 
     engine->HostGameServer(ipAddr);
 
