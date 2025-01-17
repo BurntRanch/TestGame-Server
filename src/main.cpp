@@ -35,7 +35,12 @@
 std::unique_ptr<Engine> engine;
 
 namespace State {
-    std::unordered_map<HSteamNetConnection, Object *> ConnectionToObjectMap;
+    struct PlayerState {
+        Object *object;
+        float direction;
+    };
+
+    std::unordered_map<HSteamNetConnection, PlayerState> ConnectionToObjectMap;
 
     enum packetType {
         PACKET_MOVEMENT_REQUEST,
@@ -44,39 +49,43 @@ namespace State {
     struct Packet {
         packetType type;
 
-        /* if packetType == PACKET_MOVEMENT_REQUEST*/
+        /* if packetType == PACKET_MOVEMENT_REQUEST */
         float movementDirection;
     };
 }
 
-void TickUpdate(int tickNumber) {
-    Object *obj = engine->GetObjectByID(2);
-    UTILASSERT(obj);
-
-    /* tickrate = 64.0f */
-    obj->SetScale(glm::vec3(sin(tickNumber*(1.0f/64.0f))));
-}
-
 void onClientConnect(HSteamNetConnection conn) {
-    Object *obj = new Object();
-    Camera *primaryCam = nullptr;
+    // Object *obj = new Object();
+    // Camera *primaryCam = nullptr;
 
-    obj->ImportFromFile("resources/untitled.glb", primaryCam);
+    // obj->ImportFromFile("resources/untitled.glb", primaryCam);
 
-    UTILASSERT(primaryCam);
+    // UTILASSERT(primaryCam);
 
-    /* Maybe something like this..? */
-    engine->AddObject(obj);  // obj would have a camera attachment, which would be added with AddObject.
-    engine->AttachCameraToConnection(primaryCam, conn); // When an update is sent to conn, it would send a bool flag next to the camera that indicates it's the primary camera.
+    // /* Maybe something like this..? */
+    // engine->AddObject(obj);  // obj would have a camera attachment, which would be added with AddObject.
+    // engine->AttachCameraToConnection(primaryCam, conn); // When an update is sent to conn, it would send a bool flag next to the camera that indicates it's the primary camera.
 
-    State::ConnectionToObjectMap[conn] = obj;
+    // State::PlayerState playerState{};
+
+    // playerState.object = obj;
+    // playerState.direction = 0.0f;
+
+    // State::ConnectionToObjectMap[conn] = playerState;
+
+    auto &cameras = engine->GetCameras();
+    UTILASSERT(cameras.size() > 0);
+
+    engine->AttachCameraToConnection(cameras[0], conn);
 }
 
 void onClientDisconnect(HSteamNetConnection conn) {
-    engine->RemoveObject(State::ConnectionToObjectMap[conn]);
+    engine->RemoveObject(State::ConnectionToObjectMap[conn].object);
 
-    delete State::ConnectionToObjectMap[conn]->GetCameraAttachment();
-    delete State::ConnectionToObjectMap[conn];
+    delete State::ConnectionToObjectMap[conn].object->GetCameraAttachment();
+    delete State::ConnectionToObjectMap[conn].object;
+
+    State::ConnectionToObjectMap.erase(conn);
 }
 
 void onData(HSteamNetConnection conn, std::vector<std::byte> data) {
@@ -89,21 +98,33 @@ void onData(HSteamNetConnection conn, std::vector<std::byte> data) {
     fmt::println("Client wants to move {} units along the X axis.", packet.movementDirection);
     fmt::println("We're an insecure server, so lets just allow them.");
 
-    Object *obj = State::ConnectionToObjectMap[conn];
-    obj->SetPosition(obj->GetPosition() + glm::vec3(packet.movementDirection, 0.0f, 0.0f));
+    State::PlayerState &state = State::ConnectionToObjectMap[conn];
+    state.direction = packet.movementDirection;
+}
+
+void TickUpdate(int tickNumber) {
+    for (auto &i : State::ConnectionToObjectMap) {
+        Object *obj = i.second.object;
+        float movementDirection = i.second.direction;
+
+        obj->SetPosition(obj->GetPosition() + glm::vec3(movementDirection, 0.0f, 0.0f));
+    }
 }
 
 int main(int argc, char *argv[]) {
     engine = std::make_unique<Engine>();
     
     engine->InitNetworking();
-    // engine->RegisterTickUpdateHandler(TickUpdate, NETWORKING_THREAD_ACTIVE_SERVER);
+    engine->InitPhysics();
+
     engine->RegisterNetworkEventListener(onClientConnect, EVENT_CLIENT_CONNECTED);
-    engine->RegisterNetworkEventListener(onClientDisconnect, EVENT_CLIENT_DISCONNECTED);
+    // engine->RegisterNetworkEventListener(onClientDisconnect, EVENT_CLIENT_DISCONNECTED);
 
-    engine->RegisterNetworkDataListener(onData);
+    engine->RegisterTickUpdateHandler(TickUpdate, NETWORKING_THREAD_ACTIVE_SERVER);
 
-    // engine->ImportScene("untitled.glb"); /* Get the objects ready to sync */
+    // engine->RegisterNetworkDataListener(onData);
+
+    engine->ImportScene("resources/untitled.glb"); /* Get the objects ready to sync */
 
     SteamNetworkingIPAddr ipAddr;
     ipAddr.Clear();
